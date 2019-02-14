@@ -18,6 +18,6 @@
 | Date  | Description                                                                                       |
 |-------|---------------------------------------------------------------------------------------------------|
 | 12/02 | - Role division <br> - Meeting: Discussing main concept idea of the turtlebot <br> - Creating discord group |
-| 14/02 | - Setting up Github repository                                                                    |
+| 14/02 | - Setting up Github repository and Discord communication server                                                                    |
 
 
