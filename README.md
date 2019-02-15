@@ -1,15 +1,15 @@
 # HaldisBot
 
 ## Description:
-testing discord webhook
+Testing Discord webhook
 
 ## TODO:
  
-- create poster
-- task division
-- setup Github Project managment
-- organise Discordserver
-- organise software ( using same version of ROS, ...)
+- Create poster
+- Task division
+- Setup Github Project managment
+- Organize Discordserver
+- Organize software ( using same version of ROS, ...)
 - Development
 
 
