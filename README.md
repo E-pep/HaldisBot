@@ -11,6 +11,7 @@ Testing Discord webhook
 - Organize Discordserver
 - Organize software (using same version of ROS, ...)
 - Development
+- Tutorial ROS zelf bekijken
 
 
 ## Logbook:
