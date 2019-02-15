@@ -7,9 +7,9 @@ Testing Discord webhook
  
 - Create poster
 - Task division
-- Setup Github Project managment
+- Setup Github Project management
 - Organize Discordserver
-- Organize software ( using same version of ROS, ...)
+- Organize software (using same version of ROS, ...)
 - Development
 
 
