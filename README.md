@@ -17,7 +17,8 @@ testing discord webhook
 
 | Date  | Description                                                                                       |
 |-------|---------------------------------------------------------------------------------------------------|
-| 12/02 | - Role division <br> - Meeting: Discussing main concept idea of the turtlebot <br> - Creating discord group |
-| 14/02 | - Setting up Github repository and Discord communication server                                                                    |
+| 12/02 | - Role division <br> - Meeting: Discussing main concept idea of the turtlebot <br> - Creating Discord communication server
+| 14/02 | - Setting up Github repository
+| 15/02 | - Discussing workflow for poster
 
 
