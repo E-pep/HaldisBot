@@ -1,0 +1,181 @@
+% kuleuventheme2poster by Janez Kren, June 2018, janez.kren@kuleuven.be
+
+\mode<presentation>
+
+% Theme options
+\def\sedes{n}  % if no option: title pages (default)
+\DeclareOptionBeamer{no}{\def\sedes{n}}  % normal title
+\DeclareOptionBeamer{sedes}{\def\sedes{y}}  % title pages with sedes
+
+\def\logofile{graphics/KUL.pdf}  % default
+\DeclareOptionBeamer{kulak}{\def\logofile{graphics/KULAK.pdf}}
+\DeclareOptionBeamer{lrd}{\def\logofile{graphics/LRD.png}}
+\DeclareOptionBeamer{kul}{\def\logofile{graphics/KUL.pdf}}
+
+\def\backgrd{kul-secblue}  % blue background (default)
+\DeclareOptionBeamer{white}{\def\backgrd{white}}  % white title
+\ProcessOptionsBeamer
+
+
+\newlength\baseh %base size
+\setlength{\baseh}{0.072\paperheight\relax}  % adjust coefficent to rescale
+
+
+% Packages
+%\usepackage{lmodern}					%text font (Latin Modern)
+\usepackage{tikz}						%inline graphics
+\usetikzlibrary{shapes,shadows,arrows,backgrounds,mindmap,decorations.pathreplacing,positioning}
+
+
+ %%		
+ %%  COLOURS and FONT STYLES
+ %%
+
+% Colour dfinitions
+	\definecolor{kul-blue}		{RGB}{29,141,176}		%KUL blue (primair blauw)
+	\definecolor{kul-secblue}	{RGB}{220,231,240}		%KUL light gray-blue (secundair blauw)
+	\definecolor{kul-dark}		{RGB}{47,77,93}			%KUL dark blue 
+	\definecolor{kul-light}		{RGB}{82,189,236}		%KUL light blue 
+	\definecolor{gray}			{gray}{.5}				%gray
+	\definecolor{lgray}			{gray}{.95}				%light gray for backgrounds
+
+% Text colours
+	\hypersetup{colorlinks,linkcolor=kul-blue,urlcolor=kul-blue} %link colors
+	\urlstyle{sf}					%url addreses are sans-serif font (not typewritter)
+			
+	\setbeamercolor{normal text}	{fg=black}			%text color
+	\setbeamercolor{frametitle}		{fg=kul-blue}			%frame title color
+	\setbeamercolor{section in toc}{fg=kul-blue}			%toc (section) color
+	\setbeamercolor{section in toc shaded}{fg=kul-blue}		%toc (shaded section) color
+	\setbeamercolor{item}			{fg=kul-blue}			%item color
+	\setbeamercolor{subitem}		{fg=kul-blue}			%subitem color
+	\setbeamercolor{subsubitem}		{fg=kul-blue}			%subsubitem color
+	\setbeamercolor{text}			{fg=white,bg=kul-blue}	%text block color
+	\setbeamercolor{caption name}	{fg=black}				%figure and table caption color
+	\setbeamercolor{abstract title}	{fg=kul-blue}			%abstract title color
+
+% Blocks, theorem-like environments and colorboxes
+	\setbeamerfont{block title} {size=\normalsize}				%block title font size
+	
+	\def\betty{white}
+	\ifx \betty\backgrd   %block if background is white:
+	\setbeamercolor{block title}{bg=lgray,fg=kul-blue}			%block title colour
+	\setbeamercolor{block body} {bg=lgray,fg=black}				%block body colour
+	
+	\else      %block if background is not white:
+	\setbeamercolor{block title}{bg=white,fg=kul-blue}			%block title colour
+	\setbeamercolor{block body} {bg=white,fg=black}				%block body colour	
+	\fi
+	
+	\setbeamertemplate{qed symbol}{\color{kul-blue} $\square$}	%end of proof symbol
+	
+	\setbeamercolor{block title alerted}{bg=white!95!red}				%alertbloc title (red)
+	\setbeamercolor{block body alerted}{bg=white!95!red}				%alertbloc body
+	
+	\setbeamercolor{block title example}{bg=white!95!kul-blue,fg=kul-blue} 	%example block title (blue)
+	\setbeamercolor{block body example}{bg=white!95!kul-blue,fg=black}		%example block body
+	
+	\setbeamercolor{box1}		{fg=white,bg=kul-blue}		
+	\setbeamercolor{box2}		{fg=kul-blue,bg=lgray}			%five different colour schemes for Beamer colour box
+	\setbeamercolor{box3}		{fg=black,bg=lgray}
+	\setbeamercolor{box4}		{fg=red,bg=lgray}	
+	\setbeamercolor{box5}		{fg=white,bg=red}	
+	\setbeamercolor{whitebox}	{fg=white,bg=white}
+
+	\setbeamercolor{button}		{bg=lgray,fg=kul-blue}			%button frame
+
+
+
+
+ %%		
+ %%  INNER THEME
+ %%
+	\setbeamertemplate{sections/subsections in toc}[circle]			%toc symbols
+	\setbeamersize{text margin left=\baseh,text margin right=\baseh} 	%text margins
+
+	%itemize list
+		\setbeamertemplate{itemize item}[triangle] 			%item symbol (triangle)
+		\setbeamertemplate{itemize subitem}[circle]			%subitem symbol (cirlce)
+		\renewcommand\textbullet{\ensuremath{\bullet}}		%correction for warning for subitem circle bullect
+		\setbeamertemplate{itemize subsubitem}{-}			%subsubitem symbol (short hypthen)
+
+	%enumerate list
+		\setbeamertemplate{enumerate item}{\small  \insertenumlabel  \enspace }		%enumerate symbol
+		\setbeamertemplate{enumerate subitem}{\scriptsize \raisebox{.085em} \insertsubenumlabel } 	%subenumerate symbol
+		\setbeamertemplate{enumerate subsubitem}{\tiny \raisebox{.18em} \insertsubsubenumlabel } 	%subenumerate symbol
+
+
+
+
+ %%		
+ %%  OUTER THEME
+ %%
+	\setbeamertemplate{navigation symbols}{} %remove the navigation symbols
+
+
+	\setbeamertemplate{headline}{
+	\begin{tikzpicture}[remember picture,overlay]
+	% main background
+		\fill [color=\backgrd]
+		(current page.north west)   rectangle   (current page.south east);
+
+	% top blue background band
+		\fill [color=kul-blue]
+		(current page.north west)   rectangle   ([shift={(0,-2\baseh)}]current page.north east);
+		
+	% top white background band
+		\fill [color=white]
+		(current page.north west)   rectangle   ([shift={(0,-0.9\baseh)}]current page.north east);
+	
+	% title graphic (optional, will overlay main background)
+		\ifx\backgdopacity\undefined
+	 	\def\backgdopacityy{1}   % if background opacity is undefined, take 1
+		\else
+		\def\backgdopacityy{\backgdopacity}
+		\fi
+
+	\node [anchor=north west,yshift=-2\baseh,inner sep=0pt, opacity=\backgdopacityy]
+		at (current page.north west) 
+		{\inserttitlegraphic};
+
+	% KUL logo
+		\node [anchor=north west,xshift=0.5\baseh,yshift=-.5\baseh,inner sep=0pt] 
+		at (current page.north west) 
+		{\includegraphics[height=\baseh]{\logofile}};
+
+	% info box
+	\node [white, align= flush right, text width=.65\paperwidth, text depth=0pt,
+			anchor=north east, xshift=-0.5\baseh, yshift=-1.1\baseh] 
+			at (current page.north east) 
+			{ \insertauthor			
+
+			\vspace{2pt} 
+			\insertinstitute
+			
+			\vspace{2pt} 
+			\insertdate  };	
+		\end{tikzpicture}	
+	
+	
+	% Sedes
+	\if y\sedes 
+	\begin{tikzpicture}[remember picture,overlay]
+			\node [anchor=south east,inner sep=0pt,opacity=0.25] 
+			at (current page.south east) 
+			{\includegraphics[height=3.333\baseh]{graphics/sedes.png} };
+	\end{tikzpicture}
+	\else
+	\fi
+			
+	}
+
+	\setbeamertemplate{frametitle}{
+	}
+
+
+	
+
+
+
+\mode
+<all> 
