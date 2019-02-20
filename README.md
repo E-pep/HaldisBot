@@ -1,17 +1,7 @@
 # HaldisBot
 
 ## Description:
-Testing Discord webhook
-
-## TODO:
- 
-- Create poster
-- Task division
-- Setup Github Project management
-- Organize Discordserver
-- Organize software (using same version of ROS, ...)
-- Development
-- Tutorial ROS zelf bekijken
+Dummy text: SEE Project
 
 
 ## Logbook:
