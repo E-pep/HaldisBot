@@ -19,11 +19,13 @@
 #ifndef TURTLEBOT3_CORE_CONFIG_H_
 #define TURTLEBOT3_CORE_CONFIG_H_
 
+#include <Servo.h> 
 #include <ros.h>
 #include <ros/time.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/Empty.h>
 #include <std_msgs/Int32.h>
+#include <std_msgs/UInt16.h>
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/JointState.h>
 #include <sensor_msgs/BatteryState.h>
@@ -76,6 +78,7 @@ void commandVelocityCallback(const geometry_msgs::Twist& cmd_vel_msg);
 void soundCallback(const turtlebot3_msgs::Sound& sound_msg);
 void motorPowerCallback(const std_msgs::Bool& power_msg);
 void resetCallback(const std_msgs::Empty& reset_msg);
+void servoCallback( const std_msgs::UInt16& cmd_msg);
 
 // Function prototypes
 void publishCmdVelFromRC100Msg(void);
@@ -138,6 +141,8 @@ ros::Subscriber<turtlebot3_msgs::Sound> sound_sub("sound", soundCallback);
 ros::Subscriber<std_msgs::Bool> motor_power_sub("motor_power", motorPowerCallback);
 
 ros::Subscriber<std_msgs::Empty> reset_sub("reset", resetCallback);
+
+ros::Subscriber<std_msgs::UInt16> servo_sub("servo", servoCallback);
 
 /*******************************************************************************
 * Publisher
@@ -234,5 +239,10 @@ double odom_vel[3];
 *******************************************************************************/
 bool setup_end        = false;
 uint8_t battery_state = 0;
+
+/*******************************************************************************
+* Global variable for servo motor
+*******************************************************************************/
+Servo servo;
 
 #endif // TURTLEBOT3_CORE_CONFIG_H_

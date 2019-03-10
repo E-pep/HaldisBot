@@ -33,6 +33,7 @@ void setup()
   nh.subscribe(sound_sub);
   nh.subscribe(motor_power_sub);
   nh.subscribe(reset_sub);
+  nh.subscribe(servo_sub);
 
   nh.advertise(sensor_state_pub);  
   nh.advertise(version_info_pub);
@@ -67,6 +68,10 @@ void setup()
   pinMode(LED_WORKING_CHECK, OUTPUT);
 
   setup_end = true;
+  
+  //Setting for gripper servo motor (Arduino)
+  pinMode(13, OUTPUT);  //Make pin 13 output (LED)
+  servo.attach(9);      //attach it to pin 9
 }
 
 /*******************************************************************************
@@ -204,6 +209,15 @@ void resetCallback(const std_msgs::Empty& reset_msg)
 
   sprintf(log_msg, "Reset Odometry");
   nh.loginfo(log_msg);  
+}
+
+/*******************************************************************************
+ * Callback function for servo motor (gripper)
+ ******************************************************************************/
+
+void servoCallback( const std_msgs::UInt16& cmd_msg){
+  servo.write(cmd_msg.data); //set servo angle, should be from 0-180  
+  digitalWrite(13, HIGH-digitalRead(13));  //toggle led  
 }
 
 /*******************************************************************************
