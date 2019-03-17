@@ -1,0 +1,8 @@
+prefix=/home/maxim/HaldisBot/catkin_ws/devel
+
+Name: Line_Follower_pkg
+Description: Description of Line_Follower_pkg
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/maxim/HaldisBot/catkin_ws/devel/lib 
+Requires: 
