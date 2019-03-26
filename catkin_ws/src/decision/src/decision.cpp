@@ -7,9 +7,10 @@
 
 /* states
 
-0: waiting on the Aruco order
-1: Move to objects
-
+1: Scanning for ArUco instruction
+2: Move to objects
+3: Scanning for correct ArUco code
+4: Grip object
 
 */
 
@@ -38,7 +39,7 @@ void ArucoCallback(const std_msgs::Int32::ConstPtr& msg)
 
 void movementCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
-    vel_command = msg->data;
+    Vector3 vel_command = msg->data;
 
     // We receive the velocity command from Jarrit's line follower
     // Then we publish it to the movement node, which allows us to follow the line
