@@ -7,14 +7,14 @@
 
 /* states
 
-1: Scanning for ArUco instruction
-2: Move to objects
-3: Scanning for correct ArUco code
-4: Grip object
+can be found at https://www.draw.io/#G17kVh2GfapUA7j_Pc61OxIDDBFxVxKaeO tab 3
 
 */
 
-
+#define NODET 100
+geometry_msgs::Twist::ConstPtr& vel_com;
+bool foundline = false;
+int nodet = 0;
 int aruco_threshold = 4;
 int detected_aruco;
 int aruco_to_find;
@@ -40,6 +40,14 @@ void ArucoCallback(const std_msgs::Int32::ConstPtr& msg)
 void movementCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
     Vector3 vel_command = msg->data;
+
+    if(msg->data.linear == 0){
+         foundline = false;
+    }
+    else{
+        foundline = true;
+        vel_command = msg->data;
+    }
 
     // We receive the velocity command from Jarrit's line follower
     // Then we publish it to the movement node, which allows us to follow the line
@@ -113,6 +121,24 @@ int main(int argc, char **argv)
                     previous_state = state;
                     //sub = n.subscribe("", 1, GripperCallback);
                     break;
+                case 5 :
+                    sub = n.subscribe("cmd_vel_mux/Line_Follower_vel", 1, movementCallback);
+                    while(nodet < NODET){
+                        if(!foundline){
+                            nodet++;
+                        }
+                    }
+                    state = 6;
+                case 6 :
+
+                    vel_com.angular = [0.0,0.0,pi/2];
+                    vel_com.linear = [0.0, 0.0, 0.0];
+                    vel_command = vel_com->data;
+                    wait(2)
+                    vel_com.angular = [0.0,0.0,0.0];
+                    vel_com.linear = [0.0, 0.0, 0.0];
+                    vel_command = vel_com->data;
+                    state = 1;
 
                 default:
                     std::cout << "undefined state" << std::endl;
