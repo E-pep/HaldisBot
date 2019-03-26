@@ -4,6 +4,8 @@
 #include "geometry_msgs/Twist.h"
 #include <iostream>
 #include <sstream>
+#include <chrono>
+=======
 #include <unistd.h>
 
 /* states
@@ -22,8 +24,11 @@ int aruco_to_find;
 int state = 1;
 int previous_state = 0;
 
+std::chrono::time_point<std::chrono::system_clock> line_counter_start , line_counter_end;
+
 ros::Subscriber sub;
 ros::Publisher pub;
+
 
 
 void ArucoCallback(const std_msgs::Int32::ConstPtr& msg)
@@ -40,26 +45,14 @@ void ArucoCallback(const std_msgs::Int32::ConstPtr& msg)
 
 void movementCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
-    Vector3 vel_command = msg->data;
 
-    if(msg->data.linear == 0){
-         foundline = false;
-    }
-    else{
-        foundline = true;
-        vel_command = msg->data;
-    }
+    //publish to topic to turtlebot 
+    ros::NodeHandle publish_handle;
+    pub = publish_handle.advertise<geometry_msgs::Twist>("/turtle1/cmd_vel", 10);
+    pub.publish(msg);
 
-    // We receive the velocity command from Jarrit's line follower
-    // Then we publish it to the movement node, which allows us to follow the line
-
-    // TODO: How do we detect the end of the line? Put ArUco marker down? Put down a piece of tape in another colour and make Jarrit publish a certain value?
-    /*
-    if(endofline)
-    {
-        state++;
-    }
-    */
+    // reset the counter, still moving
+    line_counter_start = std::chrono::system_clock::now();
 }
 
 void ArucoCallback2(const std_msgs::Int32::ConstPtr& msg)
@@ -83,9 +76,34 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "listener");
 	ros::NodeHandle n;
 
+	int elapsed_seconds;
+
 	while(true)
 	{
 		// switch case for state machine
+
+
+	//long time no subscribed -> end of line
+
+
+	if(state == 2)
+	{
+
+		line_counter_end = std::chrono::system_clock::now();
+		elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(line_counter_end-line_counter_start).count();
+
+		if(elapsed_seconds >= 3)
+		{
+                    std::cout << "End of line reached, switch to aruco detection elapsed time: "<< elapsed_seconds << std::endl;	
+		    state++;				
+		}
+	}
+	else
+	{
+		line_counter_start = std::chrono::system_clock::now();	
+	}
+
+
         if(state != previous_state)
         {
             switch(state)
