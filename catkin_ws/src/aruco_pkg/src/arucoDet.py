@@ -27,7 +27,30 @@ def callback(data):
     cv2.imshow(title, img_marker)
     cv2.waitKey(1)
 
-    pub.publish(ids[0])
+    width, height = img_marker.shape[:2]
+    print(width, height)
+
+    markers = []
+
+    i = 0
+    for marker in corners:
+        print("marker", i)
+        # The two opposing corner points
+        pt1 = marker[0][0]
+        pt2 = marker[0][2]
+        print("point1", pt1[0], pt1[1])
+        print("point2", pt2[0], pt2[1])
+        center_x = (pt1[0] + pt2[0])/2
+        center_y = (pt1[1] + pt2[1])/2
+        center = [center_x, center_y]
+        print(center)
+        markers.append(center)
+
+        i += 1
+
+    print(markers)
+
+    # pub.publish(ids[0])
 
 
 # help(cv2.aruco)
