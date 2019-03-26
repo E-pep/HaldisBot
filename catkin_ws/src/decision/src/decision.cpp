@@ -4,6 +4,7 @@
 #include "geometry_msgs/Twist.h"
 #include <iostream>
 #include <sstream>
+#include <unistd.h>
 
 /* states
 
@@ -96,7 +97,7 @@ int main(int argc, char **argv)
                     previous_state = state;
                     break;
 
-                /// Move to object
+                /// Move to end of line
                 case 2 :
                     std::cout << "State 2: Move to object" << std::endl;
                     sub.shutdown();
@@ -106,7 +107,7 @@ int main(int argc, char **argv)
                     // Meaning we turn 180 degrees until we see the yellow line, then go into the callback
                     break;
 
-                /// Scanning for correct ArUco code
+                /// Rotate while centering for correct ArUco code
                 case 3 :
                     std::cout << "State 3: Scanning for correct ArUco" << std::endl; //
                     sub.shutdown();
@@ -114,27 +115,83 @@ int main(int argc, char **argv)
                     sub = n.subscribe("/id_pub", 1, ArucoCallback2);
                     break;
 
-                /// Grip object
+                /// Stop rotation, rotate 180 and drive backwards, then grip the object
                 case 4 :
-                    std::cout << "State 4: Grip the object" << std::endl; //
+                    std::cout << "State 4: stop, 180 and grip" << std::endl; //
                     sub.shutdown();
                     previous_state = state;
-                    //sub = n.subscribe("", 1, GripperCallback);
+
+                    // Rotation has been stopped, wait and then rotate 180°
+                    pub = n.advertise<geometry_msgs::Twist>("/movement_instruction", 3);
+
+                    sleep(1);
+                    vel_com.angular.z = 30 * 2*pi/360;
+                    vel_command = vel_com->data;
+                    pub.publish(vel_command);
+                    ros::spinOnce();
+                    sleep(6);
+
+                    vel_com.angular.z = 0;
+                    vel_command = vel_com->data;
+                    pub.publish(vel_command);
+                    ros::spinOnce();
+
+                    // Drive backwards for 3 seconds
+                    sleep(1);
+                    vel_com.linear.x = -1;
+                    vel_command = vel_com->data;
+                    pub.publish(vel_command);
+                    ros::spinOnce();
+                    sleep(3);
+
+                    vel_com.linear.x = 0;
+                    vel_command = vel_com->data;
+                    pub.publish(vel_command);
+                    ros::spinOnce();
+
+                    // Grip the object
+                    sleep(1);
+                    pub = n.advertise<std_msgs::String>("gripper", 3);
+                    std_msgs::String msg.data = "Grip!";
+                    pub.publish(msg);
+                    ros::spinOnce();
+
+                    // Drive forwards again for 3 seconds
+                    pub = n.advertise<geometry_msgs::Twist>("/movement_instruction", 3);
+
+                    sleep(1);
+                    vel_com.linear.x = 1;
+                    vel_command = vel_com->data;
+                    pub.publish(vel_command);
+                    ros::spinOnce();
+                    sleep(3);
+
+                    vel_com.linear.x = 0;
+                    vel_command = vel_com->data;
+                    pub.publish(vel_command);
+                    ros::spinOnce();
+
+                    state++;
                     break;
+
+                /// Follow line back to user
                 case 5 :
+                    sub.shutdown();
                     sub = n.subscribe("cmd_vel_mux/Line_Follower_vel", 1, movementCallback);
                     while(nodet < NODET){
                         if(!foundline){
                             nodet++;
                         }
                     }
-                    state = 6;
-                case 6 :
+                    state++;
+                    break;
 
+                /// Rotate 180, release object
+                case 6 :
                     vel_com.angular = [0.0,0.0,pi/2];
                     vel_com.linear = [0.0, 0.0, 0.0];
                     vel_command = vel_com->data;
-                    wait(2)
+                    sleep(2)
                     vel_com.angular = [0.0,0.0,0.0];
                     vel_com.linear = [0.0, 0.0, 0.0];
                     vel_command = vel_com->data;
