@@ -11,7 +11,7 @@ STOP = 4
 vel_msg = Twist()
 
 def move(instruction):    
-	speed = 1						#1 unit per sec
+	speed = 0.5						#1 unit per sec
 	angular_speed = 30*2*PI/360		#30 degrees per sec
     
 	if(instruction.data == FWD):

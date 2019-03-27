@@ -32,32 +32,28 @@ def readKeyboard():
 	instruction_publisher = rospy.Publisher('/movement_instruction', Int32, queue_size=1)
     
 	print("Move the robot with z and s, turn with q and d, quit with p:")
-	instruction = 4
 
 	while not rospy.is_shutdown():
 		char = getch()
 		if(char == "z"):
 				# move forwards
-			instruction = FWD
+			instruction_publisher.publish(FWD)
 		elif(char == "s"):
 				# move backwards
-			instruction = BWD
+			instruction_publisher.publish(BWD)
 		elif(char == "q"):
 				# turn left
-			instruction = LEFT
+			instruction_publisher.publish(LEFT)
 		elif(char == "d"):
 				# turn right
-			instruction = RIGHT
+			instruction_publisher.publish(RIGHT)
 		elif(char == "e"):
 				# stop robot
-			instruction = STOP
+			instruction_publisher.publish(STOP)
 		elif(char == "p"):
 				# stop program
-			instruction = STOP
-			instruction_publisher.publish(instruction)
+			instruction_publisher.publish(STOP)
 			exit(0)
-		print(instruction)
-		instruction_publisher.publish(instruction)
 
 if __name__ == '__main__':
     try:
