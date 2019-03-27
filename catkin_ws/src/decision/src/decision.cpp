@@ -5,7 +5,6 @@
 #include <iostream>
 #include <sstream>
 #include <chrono>
-=======
 #include <unistd.h>
 
 /* states
@@ -77,21 +76,21 @@ void movementCallback(const geometry_msgs::Twist::ConstPtr& msg)
 }
 
 void ArucoDriveCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
-{	
-    // extract data from aruco node 
+{
+    // extract data from aruco node
     detected_aruco = msg->data[0];
     float xpercentage = msg->data[1];
 	if(detected_aruco == aruco_to_find)
 	{
 		std::cout << "Found: "<< detected_aruco << std::endl;
-        // check wether aruco is in the middle (with a margin))        
+        // check wether aruco is in the middle (with a margin))
         if(xpercentage < 0.5+MARGIN && xpercentage > 0.5-MARGIN){
             // Stop turning and go to next state
             vel_com.angular.z = 0;
             vel_command = vel_com->data;
             pub.publish(vel_command);
-            state++; 
-        }		
+            state++;
+        }
 		// Drive up to the can
     }
 }
@@ -160,10 +159,10 @@ int main(int argc, char **argv)
                     sub.shutdown();
                     previous_state = state;
                     sub = n.subscribe("/id_pub", 1, ArucoDriveCallback);
-                    // start turning (ArucoDriveCallback will stop the turning)                    
+                    // start turning (ArucoDriveCallback will stop the turning)
                     vel_com.angular.z = 15 * 2*pi/360;
                     vel_command = vel_com->data;
-                    pub.publish(vel_command); 
+                    pub.publish(vel_command);
                     break;
 
                 /// Stop rotation, rotate 180 and drive backwards, then grip the object
