@@ -18,7 +18,7 @@ can be found at https://www.draw.io/#G17kVh2GfapUA7j_Pc61OxIDDBFxVxKaeO tab 3
 geometry_msgs::Twist::ConstPtr& vel_com;
 int nodet = 0;
 int aruco_threshold = 4;
-int detected_aruco;
+float detected_aruco;
 int aruco_to_find;
 int state = 1;
 int previous_state = 0;
@@ -41,7 +41,7 @@ void turnAmount(int degrees){
 }
 
 
-void ArucoCallback(const std_msgs::Int32::ConstPtr& msg)
+void ArucoInstructionCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
 {
 	detected_aruco = msg->data;
 
@@ -76,14 +76,22 @@ void movementCallback(const geometry_msgs::Twist::ConstPtr& msg)
 
 }
 
-void ArucoCallback2(const std_msgs::Int32::ConstPtr& msg)
-{
-	detected_aruco = msg->data;
-
+void ArucoDriveCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
+{	
+    // extract data from aruco node 
+    detected_aruco = msg->data[0];
+    float xpercentage = msg->data[1];
 	if(detected_aruco == aruco_to_find)
 	{
 		std::cout << "Found: "<< detected_aruco << std::endl;
-		state++;
+        // check wether aruco is in the middle (with a margin))        
+        if(xpercentage < 0.5+MARGIN && xpercentage > 0.5-MARGIN){
+            // Stop turning and go to next state
+            vel_com.angular.z = 0;
+            vel_command = vel_com->data;
+            pub.publish(vel_command);
+            state++; 
+        }		
 		// Drive up to the can
     }
 }
@@ -132,7 +140,7 @@ int main(int argc, char **argv)
                 /// Scanning for ArUco instruction
                 case 1 :
                     std::cout << "State 1: Scanning for ArUco" << std::endl;
-                    sub = n.subscribe("/id_pub", 1, ArucoCallback);	        // subscribing to ArUco ID topic and use callback
+                    sub = n.subscribe("/id_pub", 1, ArucoInstructionCallback);	        // subscribing to ArUco ID topic and use callback
                     previous_state = state;
                     break;
 
@@ -151,7 +159,11 @@ int main(int argc, char **argv)
                     std::cout << "State 3: Scanning for correct ArUco" << std::endl; //
                     sub.shutdown();
                     previous_state = state;
-                    sub = n.subscribe("/id_pub", 1, ArucoCallback2);
+                    sub = n.subscribe("/id_pub", 1, ArucoDriveCallback);
+                    // start turning (ArucoDriveCallback will stop the turning)                    
+                    vel_com.angular.z = 15 * 2*pi/360;
+                    vel_command = vel_com->data;
+                    pub.publish(vel_command); 
                     break;
 
                 /// Stop rotation, rotate 180 and drive backwards, then grip the object
