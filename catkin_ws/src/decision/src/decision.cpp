@@ -13,7 +13,11 @@ can be found at https://www.draw.io/#G17kVh2GfapUA7j_Pc61OxIDDBFxVxKaeO tab 3
 
 */
 
+//Margin for center of aruca detection state 3
+#define MARGIN 0.05
+//timer until no line found state 2
 #define NODET 5
+
 geometry_msgs::Twist::ConstPtr& vel_com;
 int nodet = 0;
 int aruco_threshold = 4;
@@ -64,7 +68,6 @@ void movementCallback(const geometry_msgs::Twist::ConstPtr& msg)
     }
     //publish to topic to turtlebot when a line is detected
     else{
-      line_found = true;
       line_counter_start = std::chrono::system_clock::now(); //set clock
       ros::NodeHandle publish_handle;
       pub = publish_handle.advertise<geometry_msgs::Twist>("/turtle1/cmd_vel", 10);
