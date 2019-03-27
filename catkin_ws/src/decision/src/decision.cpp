@@ -14,12 +14,11 @@ can be found at https://www.draw.io/#G17kVh2GfapUA7j_Pc61OxIDDBFxVxKaeO tab 3
 
 */
 
-#define NODET 100
+#define NODET 5
 geometry_msgs::Twist::ConstPtr& vel_com;
-bool foundline = false;
 int nodet = 0;
 int aruco_threshold = 4;
-int detected_aruco;
+float detected_aruco;
 int aruco_to_find;
 int state = 1;
 int previous_state = 0;
@@ -29,9 +28,20 @@ std::chrono::time_point<std::chrono::system_clock> line_counter_start , line_cou
 ros::Subscriber sub;
 ros::Publisher pub;
 
+void turnAmount(int degrees){
+    sleep(1);
+    vel_com.angular.z = 30 * 2*pi/360;
+    vel_command = vel_com->data;
+    pub.publish(vel_command);
+    sleep(degrees/30);
+
+    vel_com.angular.z = 0;
+    vel_command = vel_com->data;
+    pub.publish(vel_command);
+}
 
 
-void ArucoCallback(const std_msgs::Int32::ConstPtr& msg)
+void ArucoInstructionCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
 {
 	detected_aruco = msg->data;
 
@@ -46,23 +56,42 @@ void ArucoCallback(const std_msgs::Int32::ConstPtr& msg)
 void movementCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
 
-    //publish to topic to turtlebot 
-    ros::NodeHandle publish_handle;
-    pub = publish_handle.advertise<geometry_msgs::Twist>("/turtle1/cmd_vel", 10);
-    pub.publish(msg);
+    //when no line is detected
+    if(msg.linear.x == 0){
+      line_counter_end = std::chrono::system_clock::now();
+      if(line_counter_end - line_counter_start > NODET){
+          state++;
+      }
+    }
+    //publish to topic to turtlebot when a line is detected
+    else{
+      line_found = true;
+      line_counter_start = std::chrono::system_clock::now(); //set clock
+      ros::NodeHandle publish_handle;
+      pub = publish_handle.advertise<geometry_msgs::Twist>("/turtle1/cmd_vel", 10);
+      pub.publish(msg);
 
+    }
     // reset the counter, still moving
-    line_counter_start = std::chrono::system_clock::now();
+
 }
 
-void ArucoCallback2(const std_msgs::Int32::ConstPtr& msg)
-{
-	detected_aruco = msg->data;
-
+void ArucoDriveCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
+{	
+    // extract data from aruco node 
+    detected_aruco = msg->data[0];
+    float xpercentage = msg->data[1];
 	if(detected_aruco == aruco_to_find)
 	{
 		std::cout << "Found: "<< detected_aruco << std::endl;
-		state++;
+        // check wether aruco is in the middle (with a margin))        
+        if(xpercentage < 0.5+MARGIN && xpercentage > 0.5-MARGIN){
+            // Stop turning and go to next state
+            vel_com.angular.z = 0;
+            vel_command = vel_com->data;
+            pub.publish(vel_command);
+            state++; 
+        }		
 		// Drive up to the can
     }
 }
@@ -94,13 +123,13 @@ int main(int argc, char **argv)
 
 		if(elapsed_seconds >= 3)
 		{
-                    std::cout << "End of line reached, switch to aruco detection elapsed time: "<< elapsed_seconds << std::endl;	
-		    state++;				
+                    std::cout << "End of line reached, switch to aruco detection elapsed time: "<< elapsed_seconds << std::endl;
+		    state++;
 		}
 	}
 	else
 	{
-		line_counter_start = std::chrono::system_clock::now();	
+		line_counter_start = std::chrono::system_clock::now();
 	}
 
 
@@ -111,7 +140,7 @@ int main(int argc, char **argv)
                 /// Scanning for ArUco instruction
                 case 1 :
                     std::cout << "State 1: Scanning for ArUco" << std::endl;
-                    sub = n.subscribe("/id_pub", 1, ArucoCallback);	        // subscribing to ArUco ID topic and use callback
+                    sub = n.subscribe("/id_pub", 1, ArucoInstructionCallback);	        // subscribing to ArUco ID topic and use callback
                     previous_state = state;
                     break;
 
@@ -130,7 +159,11 @@ int main(int argc, char **argv)
                     std::cout << "State 3: Scanning for correct ArUco" << std::endl; //
                     sub.shutdown();
                     previous_state = state;
-                    sub = n.subscribe("/id_pub", 1, ArucoCallback2);
+                    sub = n.subscribe("/id_pub", 1, ArucoDriveCallback);
+                    // start turning (ArucoDriveCallback will stop the turning)                    
+                    vel_com.angular.z = 15 * 2*pi/360;
+                    vel_command = vel_com->data;
+                    pub.publish(vel_command); 
                     break;
 
                 /// Stop rotation, rotate 180 and drive backwards, then grip the object
@@ -143,15 +176,7 @@ int main(int argc, char **argv)
                     pub = n.advertise<geometry_msgs::Twist>("/movement_instruction", 3);
 
                     sleep(1);
-                    vel_com.angular.z = 30 * 2*pi/360;
-                    vel_command = vel_com->data;
-                    pub.publish(vel_command);
-                    ros::spinOnce();
-                    sleep(6);
-
-                    vel_com.angular.z = 0;
-                    vel_command = vel_com->data;
-                    pub.publish(vel_command);
+                    turnAmount(180);
                     ros::spinOnce();
 
                     // Drive backwards for 3 seconds
@@ -196,24 +221,16 @@ int main(int argc, char **argv)
                 case 5 :
                     sub.shutdown();
                     sub = n.subscribe("cmd_vel_mux/Line_Follower_vel", 1, movementCallback);
-                    while(nodet < NODET){
-                        if(!foundline){
-                            nodet++;
-                        }
-                    }
-                    state++;
                     break;
 
                 /// Rotate 180, release object
                 case 6 :
-                    vel_com.angular = [0.0,0.0,pi/2];
-                    vel_com.linear = [0.0, 0.0, 0.0];
-                    vel_command = vel_com->data;
-                    sleep(2)
-                    vel_com.angular = [0.0,0.0,0.0];
-                    vel_com.linear = [0.0, 0.0, 0.0];
-                    vel_command = vel_com->data;
+                    sub.shutdown();
+                    turnAmount(180);
+                    //release gripper
+                    turnAmount(180);
                     state = 1;
+                    break;
 
                 default:
                     std::cout << "undefined state" << std::endl;
