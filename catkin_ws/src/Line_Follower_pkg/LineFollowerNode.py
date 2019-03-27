@@ -24,6 +24,7 @@ class Follower:
 		mask[0:search_top, 0:w] = 0
 		mask[search_bot:h, 0:w] = 0
 		M = cv2.moments(mask)
+		#when a line is detected publish rotation and constant velocity
 		if M['m00'] > 0:
 			cx = int(M['m10']/M['m00'])
 			cy = int(M['m01']/M['m00'])
@@ -38,6 +39,12 @@ class Follower:
 			self.twist.linear.x = 0.2
 			self.twist.angular.z = -float(err) / 100
 			self.cmd_vel_pub.publish(self.twist)
+		#when no line is detected publish rotation and velocity of 0
+		else:
+			self.twist.linear.x = 0.0
+			self.twist.angular.z = 0.0
+			self.cmd_vel_pub.publish(self.twist)
+
 		cv2.imshow("window", image)
 		cv2.waitKey(3)
 
