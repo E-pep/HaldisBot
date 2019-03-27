@@ -39,6 +39,18 @@ void turnAmount(int degrees){
     pub.publish(vel_command);
 }
 
+void driveTime(int speed, int time){
+    sleep(1);
+    vel_com.linear.x = speed;
+    vel_command = vel_com->data;
+    pub.publish(vel_command);
+    sleep(time);
+
+    vel_com.linear.x = 0;
+    vel_command = vel_com->data;
+    pub.publish(vel_command);
+}
+
 
 void ArucoInstructionCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
 {
@@ -172,46 +184,29 @@ int main(int argc, char **argv)
                     previous_state = state;
 
                     // Rotation has been stopped, wait and then rotate 180°
+                    pub.shutdown();
                     pub = n.advertise<geometry_msgs::Twist>("/movement_instruction", 3);
 
                     sleep(1);
                     turnAmount(180);
-                    ros::spinOnce();
 
                     // Drive backwards for 3 seconds
-                    sleep(1);
-                    vel_com.linear.x = -1;
-                    vel_command = vel_com->data;
-                    pub.publish(vel_command);
-                    ros::spinOnce();
-                    sleep(3);
-
-                    vel_com.linear.x = 0;
-                    vel_command = vel_com->data;
-                    pub.publish(vel_command);
-                    ros::spinOnce();
+                    driveTime(-1, 3);
 
                     // Grip the object
-                    sleep(1);
+                    pub.shutdown();
                     pub = n.advertise<std_msgs::String>("gripper", 3);
+
+                    sleep(1);
                     std_msgs::String msg.data = "Grip!";
                     pub.publish(msg);
-                    ros::spinOnce();
+                    pub.shutdown();
 
                     // Drive forwards again for 3 seconds
+                    pub.shutdown();
                     pub = n.advertise<geometry_msgs::Twist>("/movement_instruction", 3);
 
-                    sleep(1);
-                    vel_com.linear.x = 1;
-                    vel_command = vel_com->data;
-                    pub.publish(vel_command);
-                    ros::spinOnce();
-                    sleep(3);
-
-                    vel_com.linear.x = 0;
-                    vel_command = vel_com->data;
-                    pub.publish(vel_command);
-                    ros::spinOnce();
+                    driveTime(1, 3);
 
                     state++;
                     break;
