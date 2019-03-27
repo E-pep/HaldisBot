@@ -24,23 +24,27 @@ class Follower:
 		mask[0:search_top, 0:w] = 0
 		mask[search_bot:h, 0:w] = 0
 		M = cv2.moments(mask)
+		#when a line is detected publish rotation and constant velocity
 		if M['m00'] > 0:
 			cx = int(M['m10']/M['m00'])
 			cy = int(M['m01']/M['m00'])
 			err = cx - w/2
 			if(cx > w/2 - 20 and cx < w/2 + 20):
 				color = (50,255,50)
-				err = 0;
 			else:
 				 color = (0,0,255)
+				 print(err)
 			cv2.circle(image, (w/2, cy), 20, color, 1)
 			cv2.circle(image, (cx, cy), 5, color, -1)
 			self.twist.linear.x = 0.2
 			self.twist.angular.z = -float(err) / 100
 			self.cmd_vel_pub.publish(self.twist)
-			print("Velocity msg published {}".format(err))
+		#when no line is detected publish rotation and velocity of 0
 		else:
-			print("NO Velocity msg published")
+			self.twist.linear.x = 0.0
+			self.twist.angular.z = 0.0
+			self.cmd_vel_pub.publish(self.twist)
+
 		cv2.imshow("window", image)
 		cv2.waitKey(3)
 
