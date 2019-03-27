@@ -14,9 +14,8 @@ can be found at https://www.draw.io/#G17kVh2GfapUA7j_Pc61OxIDDBFxVxKaeO tab 3
 
 */
 
-#define NODET 100
+#define NODET 5
 geometry_msgs::Twist::ConstPtr& vel_com;
-bool foundline = false;
 int nodet = 0;
 int aruco_threshold = 4;
 int detected_aruco;
@@ -29,6 +28,17 @@ std::chrono::time_point<std::chrono::system_clock> line_counter_start , line_cou
 ros::Subscriber sub;
 ros::Publisher pub;
 
+void turnAmount(int degrees){
+    sleep(1);
+    vel_com.angular.z = 30 * 2*pi/360;
+    vel_command = vel_com->data;
+    pub.publish(vel_command);
+    sleep(degrees/30);
+
+    vel_com.angular.z = 0;
+    vel_command = vel_com->data;
+    pub.publish(vel_command);
+}
 
 
 void ArucoCallback(const std_msgs::Int32::ConstPtr& msg)
@@ -46,13 +56,24 @@ void ArucoCallback(const std_msgs::Int32::ConstPtr& msg)
 void movementCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
 
-    //publish to topic to turtlebot 
-    ros::NodeHandle publish_handle;
-    pub = publish_handle.advertise<geometry_msgs::Twist>("/turtle1/cmd_vel", 10);
-    pub.publish(msg);
+    //when no line is detected
+    if(msg.linear.x == 0){
+      line_counter_end = std::chrono::system_clock::now();
+      if(line_counter_end - line_counter_start > NODET){
+          state++;
+      }
+    }
+    //publish to topic to turtlebot when a line is detected
+    else{
+      line_found = true;
+      line_counter_start = std::chrono::system_clock::now(); //set clock
+      ros::NodeHandle publish_handle;
+      pub = publish_handle.advertise<geometry_msgs::Twist>("/turtle1/cmd_vel", 10);
+      pub.publish(msg);
 
+    }
     // reset the counter, still moving
-    line_counter_start = std::chrono::system_clock::now();
+
 }
 
 void ArucoCallback2(const std_msgs::Int32::ConstPtr& msg)
@@ -94,13 +115,13 @@ int main(int argc, char **argv)
 
 		if(elapsed_seconds >= 3)
 		{
-                    std::cout << "End of line reached, switch to aruco detection elapsed time: "<< elapsed_seconds << std::endl;	
-		    state++;				
+                    std::cout << "End of line reached, switch to aruco detection elapsed time: "<< elapsed_seconds << std::endl;
+		    state++;
 		}
 	}
 	else
 	{
-		line_counter_start = std::chrono::system_clock::now();	
+		line_counter_start = std::chrono::system_clock::now();
 	}
 
 
@@ -143,15 +164,7 @@ int main(int argc, char **argv)
                     pub = n.advertise<geometry_msgs::Twist>("/movement_instruction", 3);
 
                     sleep(1);
-                    vel_com.angular.z = 30 * 2*pi/360;
-                    vel_command = vel_com->data;
-                    pub.publish(vel_command);
-                    ros::spinOnce();
-                    sleep(6);
-
-                    vel_com.angular.z = 0;
-                    vel_command = vel_com->data;
-                    pub.publish(vel_command);
+                    turnAmount(180);
                     ros::spinOnce();
 
                     // Drive backwards for 3 seconds
@@ -196,24 +209,16 @@ int main(int argc, char **argv)
                 case 5 :
                     sub.shutdown();
                     sub = n.subscribe("cmd_vel_mux/Line_Follower_vel", 1, movementCallback);
-                    while(nodet < NODET){
-                        if(!foundline){
-                            nodet++;
-                        }
-                    }
-                    state++;
                     break;
 
                 /// Rotate 180, release object
                 case 6 :
-                    vel_com.angular = [0.0,0.0,pi/2];
-                    vel_com.linear = [0.0, 0.0, 0.0];
-                    vel_command = vel_com->data;
-                    sleep(2)
-                    vel_com.angular = [0.0,0.0,0.0];
-                    vel_com.linear = [0.0, 0.0, 0.0];
-                    vel_command = vel_com->data;
+                    sub.shutdown();
+                    turnAmount(180);
+                    //release gripper
+                    turnAmount(180);
                     state = 1;
+                    break;
 
                 default:
                     std::cout << "undefined state" << std::endl;
