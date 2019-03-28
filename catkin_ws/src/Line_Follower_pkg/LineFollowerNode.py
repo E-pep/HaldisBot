@@ -40,6 +40,7 @@ class Follower:
 		#some features of the mask (center,area,etc..)
 		M = cv2.moments(mask)
 		#when a line is detected publish rotation and constant velocity
+		print(M['m00'])
 		if M['m00'] > 0:
 			cx = int(M['m10']/M['m00'])
 			cy = int(M['m01']/M['m00'])
@@ -51,7 +52,6 @@ class Follower:
 			else:
 				 color = (0,0,255)
 				 print(err)
-			#draw circle in center of screen and center of line as visual aid
 			cv2.circle(image, (w/2, cy), 20, color, 1)
 			cv2.circle(image, (cx, cy), 5, color, -1)
 			self.twist.linear.x = 0.2
@@ -59,6 +59,7 @@ class Follower:
 			self.cmd_vel_pub.publish(self.twist)
 		#when no line is detected publish rotation and velocity of 0
 		else:
+			print("no line detected")
 			self.twist.linear.x = 0.0
 			self.twist.angular.z = 0.0
 			self.cmd_vel_pub.publish(self.twist)
