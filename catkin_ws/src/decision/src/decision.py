@@ -48,7 +48,7 @@ class DecisionNode:
         self.pub.publish(self.vel_com)
 
     def drive_time(self, speed, seconds):
-        time.sleep(1)
+            time.sleep(1)
         self.vel_com.linear.x = speed
         self.pub.publish(self.vel_com)
         time.sleep(seconds)
