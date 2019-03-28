@@ -1,11 +1,13 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include "std_msgs/Int32.h"
+#include "std_msgs/Float32MultiArray.h"
 #include "geometry_msgs/Twist.h"
 #include <iostream>
 #include <sstream>
 #include <chrono>
 #include <unistd.h>
+#include <math.h>
 
 /* states
 
@@ -14,80 +16,72 @@ can be found at https://www.draw.io/#G17kVh2GfapUA7j_Pc61OxIDDBFxVxKaeO tab 3
 */
 
 //Margin for center of aruca detection state 3
-#define MARGIN 0.05
+const float MARGIN = 0.05;
 //timer until no line found state 2
-#define NODET 5
 
-geometry_msgs::Twist::ConstPtr& vel_com;
-int nodet = 0;
+geometry_msgs::Twist vel_com;
 int aruco_threshold = 4;
-float detected_aruco;
+std_msgs::Float32MultiArray detected_aruco;
 int aruco_to_find;
 int state = 1;
 int previous_state = 0;
 
-std::chrono::time_point<std::chrono::system_clock> line_counter_start , line_counter_end;
+std::chrono::time_point<std::chrono::system_clock> line_counter_start, line_counter_end;
 
 ros::Subscriber sub;
 ros::Publisher pub;
 
-void turnAmount(int degrees){
+void turnAmount(int degrees)
+{
     sleep(1);
-    vel_com.angular.z = 30 * 2*pi/360;
-    vel_command = vel_com->data;
-    pub.publish(vel_command);
+    vel_com.angular.z = 30 * 2*M_PI/360;
+    pub.publish(vel_com);
     sleep(degrees/30);
-
     vel_com.angular.z = 0;
-    vel_command = vel_com->data;
-    pub.publish(vel_command);
+    pub.publish(vel_com);
 }
 
-void driveTime(int speed, int time){
+void driveTime(int speed, int time)
+{
     sleep(1);
     vel_com.linear.x = speed;
-    vel_command = vel_com->data;
-    pub.publish(vel_command);
+    pub.publish(vel_com);
     sleep(time);
-
     vel_com.linear.x = 0;
-    vel_command = vel_com->data;
-    pub.publish(vel_command);
+    pub.publish(vel_com);
 }
 
 
-void ArucoInstructionCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
-{
-	detected_aruco = msg->data;
-
-	if(detected_aruco < aruco_threshold)
-	{
+void ArucoInstructionCallback(const std_msgs::Float32MultiArray::ConstPtr& msg){
+  	detected_aruco = msg.data;
+  	if(detected_aruco < aruco_threshold)
+    {
 		std::cout << "Detected: "<< detected_aruco << std::endl;
 		aruco_to_find = detected_aruco;
 		state++;
     }
 }
 
-void movementCallback(const geometry_msgs::Twist::ConstPtr& msg)
+void movementCallback(const geometry_msgs::Twist msg)
 {
-
     //when no line is detected
-    if(msg.linear.x == 0){
-      line_counter_end = std::chrono::system_clock::now();
-      if(line_counter_end - line_counter_start > NODET){
-          state++;
-      }
+    if(msg.linear.x == 0)
+    {
+        line_counter_end = system_clock.now();
+        if(line_counter_end - line_counter_start > 5)
+        {
+            state++;
+        }
     }
     //publish to topic to turtlebot when a line is detected
-    else{
-      line_counter_start = std::chrono::system_clock::now(); //set clock
-      ros::NodeHandle publish_handle;
-      pub = publish_handle.advertise<geometry_msgs::Twist>("/turtle1/cmd_vel", 10);
-      pub.publish(msg);
-
+    else
+    {
+        line_counter_start = system_clock.now(); //set clock
+        ros::NodeHandle publish_handle;
+        pub = publish_handle.advertise<geometry_msgs::Twist>("/turtle1/cmd_vel", 10);
+        pub.publish(msg);
     }
     // reset the counter, still moving
-
 }
 
 void ArucoDriveCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
@@ -95,56 +89,53 @@ void ArucoDriveCallback(const std_msgs::Float32MultiArray::ConstPtr& msg)
     // extract data from aruco node
     detected_aruco = msg->data[0];
     float xpercentage = msg->data[1];
-	if(detected_aruco == aruco_to_find)
-	{
-		std::cout << "Found: "<< detected_aruco << std::endl;
+  	if(detected_aruco == aruco_to_find)
+  	{
+    	std::cout << "Found: "<< detected_aruco << std::endl;
         // check wether aruco is in the middle (with a margin))
-        if(xpercentage < 0.5+MARGIN && xpercentage > 0.5-MARGIN){
+        if(xpercentage < 0.5+MARGIN && xpercentage > 0.5-MARGIN)
+        {
             // Stop turning and go to next state
             vel_com.angular.z = 0;
-            vel_command = vel_com->data;
-            pub.publish(vel_command);
+
+            pub.publish(vel_com);
             state++;
         }
-		// Drive up to the can
+  		// Drive up to the can
     }
 }
 
-
-
 int main(int argc, char **argv)
 {
-	std::cout << "Decision node started" << std::endl;
+  	std::cout << "Decision node started" << std::endl;
 
-	ros::init(argc, argv, "listener");
-	ros::NodeHandle n;
+  	ros::init(argc, argv, "listener");
+  	ros::NodeHandle n;
 
-	int elapsed_seconds;
+  	int elapsed_seconds;
 
-	while(true)
-	{
-		// switch case for state machine
+  	while(true)
+  	{
+    	// switch case for state machine
 
+      	//long time no subscribed -> end of line
 
-	//long time no subscribed -> end of line
+      	if(state == 2)
+      	{
 
+    		line_counter_end = std::chrono::system_clock::now();
+    		elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(line_counter_end-line_counter_start).count();
 
-	if(state == 2)
-	{
-
-		line_counter_end = std::chrono::system_clock::now();
-		elapsed_seconds = std::chrono::duration_cast<std::chrono::seconds>(line_counter_end-line_counter_start).count();
-
-		if(elapsed_seconds >= 3)
-		{
-                    std::cout << "End of line reached, switch to aruco detection elapsed time: "<< elapsed_seconds << std::endl;
-		    state++;
-		}
-	}
-	else
-	{
-		line_counter_start = std::chrono::system_clock::now();
-	}
+    		if(elapsed_seconds >= 3)
+    		{
+                std::cout << "End of line reached, switch to aruco detection elapsed time: "<< elapsed_seconds << std::endl;
+  		        state++;
+    		}
+      	}
+      	else
+      	{
+    		line_counter_start = std::chrono::system_clock::now();
+      	}
 
 
         if(state != previous_state)
@@ -175,9 +166,9 @@ int main(int argc, char **argv)
                     previous_state = state;
                     sub = n.subscribe("/id_pub", 1, ArucoDriveCallback);
                     // start turning (ArucoDriveCallback will stop the turning)
-                    vel_com.angular.z = 15 * 2*pi/360;
-                    vel_command = vel_com->data;
-                    pub.publish(vel_command);
+                    vel_com.angular.z = 15 * 2*M_PI/360;
+
+                    pub.publish(vel_com);
                     break;
 
                 /// Stop rotation, rotate 180 and drive backwards, then grip the object
@@ -236,5 +227,8 @@ int main(int argc, char **argv)
         }
         ros::spinOnce();
     }
-	return 0;
+  	return 0;
 }
+/*
+
+*/
