@@ -10,6 +10,7 @@ from cv_bridge import CvBridge
 
 bridge = CvBridge()
 
+
 def callback(data):
     # Convert to cv image
     cv_img = bridge.imgmsg_to_cv2(data, desired_encoding="passthrough")
@@ -70,6 +71,7 @@ def callback(data):
 
 # help(cv2.aruco)
 aruco_dict = aruco.Dictionary_get(aruco.DICT_4X4_100)
+# Create the markers
 '''for i in range(4):
     img = aruco.drawMarker(aruco_dict, i, 500)
 
