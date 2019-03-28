@@ -40,6 +40,7 @@ class Follower:
 		#some features of the mask (center,area,etc..)
 		M = cv2.moments(mask)
 		#when a line is detected publish rotation and constant velocity
+		print(M['m00'])
 		if M['m00'] > 0:
 			cx = int(M['m10']/M['m00'])
 			cy = int(M['m01']/M['m00'])
@@ -56,22 +57,9 @@ class Follower:
 			self.twist.linear.x = 0.2
 			self.twist.angular.z = -float(err) / 100
 			self.cmd_vel_pub.publish(self.twist)
-			print("Velocity msg published {}".format(err))
-		else:
-			print("NO Velocity msg published")
-		cv2.imshow("window", image)
-		cv2.waitKey(3)
-
-rospy.init_node('Line_Follower_Node')
-follower = Follower()
-rospy.spin()
-
-			cv2.circle(image, (cx, cy), 5, color, -1)
-			self.twist.linear.x = 0.2
-			self.twist.angular.z = -float(err) / 100
-			self.cmd_vel_pub.publish(self.twist)
 		#when no line is detected publish rotation and velocity of 0
 		else:
+			print("no line detected")
 			self.twist.linear.x = 0.0
 			self.twist.angular.z = 0.0
 			self.cmd_vel_pub.publish(self.twist)
