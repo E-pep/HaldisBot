@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 
 import rospy
-from std_msgs.msg import String, Float32MultiArray
+from std_msgs.msg import String, Float32MultiArray, UInt16
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Twist
 from numpy import pi as PI
@@ -17,7 +17,8 @@ def signal_handler(signal, frame):
 """
 States
 ======
-can be found at https:#www.draw.io/#G17kVh2GfapUA7j_Pc61OxIDDBFxVxKaeO tab 3
+can be found at https:#www.draw.io/#G17kVh2GfapUA7j_Pc61OxIDDBFxVxKaeO
+(Third tab from bottom)
 """
 
 
@@ -35,6 +36,10 @@ class DecisionNode:
         self.state = 1
         self.previous_state = 0
         self.time_last = 0
+        self.gripper_angle = 0
+        # TODO: test gripper angles!
+        self.gripper_open = 180
+        self.gripper_close = 0
 
     def dummy_func(self):
         pass
@@ -143,12 +148,11 @@ class DecisionNode:
                     self.drive_time(-1, 3)
 
                     # Grip the object
-                    print("TODO: Grip object")
-                    """
+                    print("Grip object")
                     time.sleep(1)
-                    self.msg = "Griep!"
-                    self.pub = rospy.Publisher("gripper", String, queue_size=3)
-                    self.pub.publish(msg)"""
+                    self.gripper_angle = self.gripper_close
+                    self.pub = rospy.Publisher("servo", UInt16, queue_size=3)
+                    self.pub.publish(self.gripper_angle)
 
                     # Drive forward again for 3 seconds
                     print("Drive forward for 3 seconds")
@@ -172,7 +176,10 @@ class DecisionNode:
                     self.turn_amount(180)
 
                     # release gripper
-                    print("TODO: Release object")
+                    print("Release object")
+                    self.gripper_angle = self.gripper_open
+                    self.pub = rospy.Publisher("servo", UInt16, queue_size=3)
+                    self.pub.publish(self.gripper_angle)
 
                     print("Turning 180")
                     self.turn_amount(180)
