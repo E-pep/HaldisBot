@@ -1,4 +1,4 @@
-
+#!/usr/bin/python2.7
 import rospy
 #import for ros msg images
 from sensor_msgs.msg import Image
@@ -39,7 +39,6 @@ class Follower:
 		#some features of the mask (center,area,etc..)
 		M = cv2.moments(mask)
 		#when a line is detected publish rotation and constant velocity
-		print(M['m00'])
 		if M['m00'] > 0:
 			cx = int(M['m10']/M['m00'])
 			cy = int(M['m01']/M['m00'])
@@ -70,4 +69,4 @@ rospy.init_node('Line_Follower_Node')
 #make new object of class
 follower = Follower()
 #start spinning without revisiting main fun
-rospy.spin()	
+rospy.spin()
