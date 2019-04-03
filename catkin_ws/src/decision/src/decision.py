@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 
 import rospy
-from std_msgs.msg import Float32MultiArray
+from std_msgs.msg import Float32MultiArray, UInt16
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Twist
 from numpy import pi
@@ -18,7 +18,8 @@ def signal_handler(signal, frame):
 """
 States
 ======
-can be found at https:#www.draw.io/#G17kVh2GfapUA7j_Pc61OxIDDBFxVxKaeO tab 3
+can be found at https:#www.draw.io/#G17kVh2GfapUA7j_Pc61OxIDDBFxVxKaeO
+(Third tab from bottom)
 """
 
 
@@ -36,6 +37,12 @@ class DecisionNode:
         self.state = 1
         self.previous_state = 0
         self.time_last = 0
+        self.gripper_angle = 0
+        # TODO: test gripper angles!
+        self.gripper_time = 5
+        self.takeaway_time = 10
+        self.gripper_open = 180
+        self.gripper_close = 0
 
     def dummy_func(self):
         pass
@@ -113,12 +120,12 @@ class DecisionNode:
 
                 # Move to end of line
                 elif self.state == 2:
-                    print(self.state)
+                    print("State 2: Move to end of line")
                     self.sub.unregister()                               # unsubscribing topic aruco
                     self.pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
                     print("Turning 180")
                     self.turn_amount(180)
-                    print("State 2: Move to object")
+                    print("Start driving")
                     self.time_last = time.time()
                     self.sub = rospy.Subscriber("cmd_vel_mux/Line_Follower_vel", Twist, self.movement_callback)
                     # Turn around until something gets published on the node we're subscribed to
@@ -151,8 +158,12 @@ class DecisionNode:
                     self.drive_time(-0.05, 3)
 
                     # Grip the object
-                    print("TODO: Grip object")
+                    print("Grip object")
                     time.sleep(1)
+                    self.gripper_angle = self.gripper_close
+                    self.pub = rospy.Publisher("servo", UInt16, queue_size=3)
+                    self.pub.publish(self.gripper_angle)
+                    time.sleep(self.gripper_time)
 
                     # Drive forward again for 3 seconds
                     print("Drive forward for 3 seconds")
@@ -173,12 +184,20 @@ class DecisionNode:
                     self.sub.unregister()
 
                     print("Turning 180")
+                    self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
                     self.turn_amount(180)
 
                     # release gripper
-                    print("TODO: Release object")
+                    print("Release object")
+                    self.gripper_angle = self.gripper_open
+                    self.pub = rospy.Publisher("servo", UInt16, queue_size=3)
+                    self.pub.publish(self.gripper_angle)
+                    time.sleep(self.gripper_time)
+                    print("QUICK, TAKE YOUR DRINK NOW!")
+                    time.sleep(self.takeaway_time)
 
                     print("Turning 180")
+                    self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
                     self.turn_amount(180)
                     self.state = 1
 
