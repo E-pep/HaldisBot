@@ -70,4 +70,4 @@ rospy.init_node('Line_Follower_Node')
 #make new object of class
 follower = Follower()
 #start spinning without revisiting main fun
-rospy.spin()
+rospy.spin()	
