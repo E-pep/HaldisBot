@@ -37,12 +37,12 @@ class DecisionNode:
         self.state = 1
         self.previous_state = 0
         self.time_last = 0
-        self.gripper_angle = 0
+        self.gripper_angle = UInt16(0)
         # TODO: test gripper angles!
-        self.gripper_time = 5
+        self.gripper_time = 3
         self.takeaway_time = 10
-        self.gripper_open = 180
-        self.gripper_close = 0
+        self.gripper_open = UInt16(0)
+        self.gripper_close = UInt16(80)
 
     def dummy_func(self):
         pass
@@ -77,6 +77,7 @@ class DecisionNode:
     def movement_callback(self, msg):
         # when no line is detected
         if msg.linear.x == 0:
+            msg.angular.z = 0
             print("No line for:", time.time() - self.time_last, "Seconds")
             if time.time() - self.time_last > 5:
                 self.state += 1
@@ -94,7 +95,7 @@ class DecisionNode:
         xpercentage = msg.data[1]
         if self.detected_aruco == self.aruco_to_find:
             print("Found:", self.detected_aruco)
-            # check wether aruco is in the middle (with a margin))
+            # check whether aruco is in the middle (with a margin))
             if 0.5 - self.margin < xpercentage < 0.5 + self.margin:
                 print("In middle!")
                 # Stop turning and go to next state
@@ -163,7 +164,7 @@ class DecisionNode:
                     print("Grip object")
                     time.sleep(1)
                     self.gripper_angle = self.gripper_close
-                    self.pub = rospy.Publisher("servo", UInt16, queue_size=3)
+                    self.pub = rospy.Publisher("/servo", UInt16, queue_size=3)
                     self.pub.publish(self.gripper_angle)
                     time.sleep(self.gripper_time)
 
@@ -192,7 +193,7 @@ class DecisionNode:
                     # release gripper
                     print("Release object")
                     self.gripper_angle = self.gripper_open
-                    self.pub = rospy.Publisher("servo", UInt16, queue_size=3)
+                    self.pub = rospy.Publisher("/servo", UInt16, queue_size=3)
                     self.pub.publish(self.gripper_angle)
                     time.sleep(self.gripper_time)
                     print("QUICK, TAKE YOUR DRINK NOW!")
