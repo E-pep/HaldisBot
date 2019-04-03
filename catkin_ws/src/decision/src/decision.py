@@ -27,7 +27,6 @@ class DecisionNode:
 
     def __init__(self):
         self.sub = rospy.Subscriber("dummy", Image, self.dummy_func)
-        self.pub = rospy.Publisher("dummy", Image, queue_size=1)
         rospy.init_node("decision_node", anonymous=True)
         self.margin = 0.05
         self.vel_com = Twist()
@@ -37,12 +36,15 @@ class DecisionNode:
         self.state = 1
         self.previous_state = 0
         self.time_last = 0
-        self.gripper_angle = UInt16(0)
         # TODO: test gripper angles!
         self.gripper_time = 3
         self.takeaway_time = 10
         self.gripper_open = UInt16(0)
         self.gripper_close = UInt16(80)
+
+        self.gripper_angle = self.gripper_open
+        self.pub = rospy.Publisher("/servo", UInt16, queue_size=3)
+        self.pub.publish(self.gripper_angle)
 
     def dummy_func(self):
         pass
