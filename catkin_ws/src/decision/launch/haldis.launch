@@ -1,0 +1,4 @@
+<launch>
+  <include file="$(find turtlebot3_bringup)/launch/turtlebot3_robot.launch"/>
+  <!-- <include file="$(find usb_cam)/launch/usb_cam-test.launch"/> --> <!-- //uncomment if using rpi-cam -->
+</launch>

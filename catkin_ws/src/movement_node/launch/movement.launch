@@ -1,4 +1,4 @@
 <launch>
-  <node pkg="movement_node" type="movement.py" name="movement_node"  output="screen"></node>
+  <node pkg="movement_node" type="movement.py" name="movement_node"></node>
   <node pkg="movement_node" type="keyboard.py" name="movement_node_keyboard"></node>
 </launch>

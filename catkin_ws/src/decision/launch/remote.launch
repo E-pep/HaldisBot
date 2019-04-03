@@ -1,0 +1,7 @@
+<launch>
+  <include file="$(find movement_node)/launch/movement.launch"/>
+  <include file="$(find usb_cam)/launch/usb_cam-test.launch"/>		<!-- //comment if using rpi-cam -->
+  <node pkg="decision" type="decision.py" name="decision" output="screen"></node>
+  <node pkg="aruco_pkg" type="arucoDet.py" name="aruco"></node>
+  <node pkg="Line_Follower_pkg" type="LineFollowerNode.py" name="line_follower"></node>
+</launch>
