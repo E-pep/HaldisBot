@@ -116,12 +116,14 @@ class DecisionNode:
                 if self.state == 1:
                     print("State 1: Scanning for ArUco")
                     self.sub.unregister()
-                    self.sub = rospy.Subscriber("/id_pub", Float32MultiArray, self.aruco_instruction_callback)  # subscribing to ArUco ID topic and use callback
+                    # subscribing to ArUco ID topic and use callback
+                    self.sub = rospy.Subscriber("/id_pub", Float32MultiArray, self.aruco_instruction_callback)
 
                 # Move to end of line
                 elif self.state == 2:
                     print("State 2: Move to end of line")
-                    self.sub.unregister()                               # unsubscribing topic aruco
+                    # unsubscribing topic aruco
+                    self.sub.unregister()
                     self.pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
                     print("Turning 180")
                     self.turn_amount(180)
