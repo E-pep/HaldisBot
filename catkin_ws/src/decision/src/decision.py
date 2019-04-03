@@ -1,19 +1,14 @@
 #!/usr/bin/python2.7
 
 import rospy
-from std_msgs.msg import String, Float32MultiArray
+from std_msgs.msg import Float32MultiArray
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Twist
-from numpy import pi as PI
+from numpy import pi
 import time
-import sys, signal
-from std_msgs.msg import Int32
+import sys
+import signal
 
-FWD = 0
-BWD = 1
-LEFT = 2
-RIGHT = 3
-STOP = 4
 
 def signal_handler(signal, frame):
     print("Program interrupted and exited")
@@ -37,6 +32,7 @@ class DecisionNode:
         self.vel_com = Twist()
         self.aruco_threshold = 4
         self.detected_aruco = Float32MultiArray()
+        self.aruco_to_find = 1000000
         self.state = 1
         self.previous_state = 0
         self.time_last = 0
@@ -46,22 +42,23 @@ class DecisionNode:
 
     def turn_amount(self, degrees):
         time.sleep(1)
-        #self.vel_com.angular.z = 30 * 2 * PI / 360
-        #print self.vel_com.linear
-        #print self.vel_com.angular
-        self.pub.publish(LEFT) #self.pub.publish(self.vel_com)
+        self.vel_com.angular.z = 30 * 2 * pi / 360
+        self.vel_com.linear.x = 0
+        self.pub.publish(self.vel_com)
         time.sleep(degrees / 30)
         self.vel_com.angular.z = 0
-        self.pub.publish(STOP) #self.pub.publish(self.vel_com)
+        self.vel_com.linear.x = 0
+        self.pub.publish(self.vel_com)
 
-    def drive_time(self, direction, seconds):
+    def drive_time(self, speed, seconds):
         time.sleep(1)
-        #self.vel_com.linear.x = speed
-        #self.pub.publish(self.vel_com)
-        self.pub.publish(direction)
+        self.vel_com.linear.x = speed
+        self.vel_com.angular.z = 0
+        self.pub.publish(self.vel_com)
         time.sleep(seconds)
-        #self.vel_com.linear.x = 0
-        self.pub.publish(STOP)
+        self.vel_com.linear.x = 0
+        self.vel_com.angular.z = 0
+        self.pub.publish(self.vel_com)
 
     def aruco_instruction_callback(self, msg):
         self.detected_aruco = msg.data[0]
@@ -94,9 +91,10 @@ class DecisionNode:
             if 0.5 - self.margin < xpercentage < 0.5 + self.margin:
                 print("In middle!")
                 # Stop turning and go to next state
+                self.vel_com.linear.x = 0
                 self.vel_com.angular.z = 0
-                self.pub = rospy.Publisher('/movement_instruction', Int32, queue_size=1)
-                self.pub.publish(STOP)
+                self.pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+                self.pub.publish(self.vel_com)
                 self.state += 1
             # Drive up to the can
 
@@ -115,9 +113,9 @@ class DecisionNode:
 
                 # Move to end of line
                 elif self.state == 2:
-                    print self.state
+                    print(self.state)
                     self.sub.unregister()                               # unsubscribing topic aruco
-                    self.pub = rospy.Publisher('/movement_instruction', Int32, queue_size=1)
+                    self.pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
                     print("Turning 180")
                     self.turn_amount(180)
                     print("State 2: Move to object")
@@ -132,10 +130,10 @@ class DecisionNode:
                     self.sub.unregister()
                     self.sub = rospy.Subscriber("/id_pub", Float32MultiArray, self.aruco_drive_callback)
                     # start turning (aruco_drive_callback will stop the turning)
-                    #self.vel_com.angular.z = 15 * 2 * PI / 360
-                    self.pub = rospy.Publisher("/movement_instruction", Int32, queue_size=3)
-                    self.pub.publish(LEFT)
-                    #self.pub.publish(self.vel_com)
+                    self.vel_com.angular.z = 15 * 2 * pi / 360
+                    self.vel_com.linear.x = 0
+                    self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
+                    self.pub.publish(self.vel_com)
 
                 # Stop rotation, rotate 180 and drive backwards, then grip the object
                 elif self.state == 4:
@@ -143,26 +141,23 @@ class DecisionNode:
                     self.sub.unregister()
 
                     # Rotation has been stopped, wait and then rotate 180 degrees
-                    self.pub = rospy.Publisher("/movement_instruction", Int32, queue_size=3)
+                    self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
 
                     print("Turning 180")
                     self.turn_amount(180)
 
                     # Drive backwards for 3 seconds
                     print("Drive backwards for 3 seconds")
-                    self.drive_time(-1, 3)
+                    self.drive_time(-0.05, 3)
 
                     # Grip the object
                     print("TODO: Grip object")
-                    """
                     time.sleep(1)
-                    self.pub = rospy.Publisher("gripper", String, queue_size=3)
-                    self.pub.publish(msg)"""
 
                     # Drive forward again for 3 seconds
                     print("Drive forward for 3 seconds")
-                    self.pub = rospy.Publisher("/movement_instruction", Twist, queue_size=3)
-                    self.drive_time(FWD, 3)
+                    self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
+                    self.drive_time(0.05, 3)
                     self.state += 1
 
                 # Follow line back to user
