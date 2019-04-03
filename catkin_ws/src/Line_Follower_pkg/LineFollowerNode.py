@@ -52,7 +52,7 @@ class Follower:
 				 print(err)
 			cv2.circle(image, (w/2, cy), 20, color, 1)
 			cv2.circle(image, (cx, cy), 5, color, -1)
-			self.twist.linear.x = 0.2
+			self.twist.linear.x = 0.05
 			self.twist.angular.z = -float(err) / 100
 			self.cmd_vel_pub.publish(self.twist)
 		#when no line is detected publish rotation and velocity of 0
