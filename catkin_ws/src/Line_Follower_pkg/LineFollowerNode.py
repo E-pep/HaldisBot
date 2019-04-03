@@ -1,5 +1,4 @@
-#!/usr/bin/env python2.7
-
+#!/usr/bin/python2.7
 import rospy
 #import for ros msg images
 from sensor_msgs.msg import Image
@@ -40,7 +39,6 @@ class Follower:
 		#some features of the mask (center,area,etc..)
 		M = cv2.moments(mask)
 		#when a line is detected publish rotation and constant velocity
-		print(M['m00'])
 		if M['m00'] > 0:
 			cx = int(M['m10']/M['m00'])
 			cy = int(M['m01']/M['m00'])
@@ -54,7 +52,7 @@ class Follower:
 				 print(err)
 			cv2.circle(image, (w/2, cy), 20, color, 1)
 			cv2.circle(image, (cx, cy), 5, color, -1)
-			self.twist.linear.x = 0.2
+			self.twist.linear.x = 0.05
 			self.twist.angular.z = -float(err) / 100
 			self.cmd_vel_pub.publish(self.twist)
 		#when no line is detected publish rotation and velocity of 0
