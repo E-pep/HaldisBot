@@ -23,7 +23,7 @@ class Follower:
 		#convert message to image
 		image = self.bridge.imgmsg_to_cv2(msg,desired_encoding='passthrough')
 		#convert image color scheme to HSV
-		hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+		hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
 		#define color of line in HSV
 		lower_yellow = numpy.array([20, 100, 100])
 		upper_yellow = numpy.array([30, 255, 255])
