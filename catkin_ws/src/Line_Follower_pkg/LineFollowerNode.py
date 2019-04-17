@@ -22,7 +22,24 @@ class Follower:
 	def image_callback(self, msg):
 		#convert message to image
 		image = self.bridge.imgmsg_to_cv2(msg,desired_encoding='passthrough')
-		cv2.flip(image,image,-1)
+
+		#flip input
+		h, w, c = image.shape
+
+		h = h - 1
+		w = w - 1
+
+		empty_img = np.zeros([h, w, 3], dtype=np.uint8)
+
+		for i in range(h):
+			for j in range(w):
+				empty_img[i, j] = image[h - i, w - j]
+				empty_img = empty_img[0:h, 0:w]
+
+		image = empty_img
+
+
+
 		#convert image color scheme to HSV
 		hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
 		#define color of line in HSV
