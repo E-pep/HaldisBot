@@ -29,7 +29,7 @@ class Follower:
 		h = h - 1
 		w = w - 1
 
-		empty_img = np.zeros([h, w, 3], dtype=np.uint8)
+		empty_img = numpy.zeros([h, w, 3], dtype=numpy.uint8)
 
 		for i in range(h):
 			for j in range(w):
