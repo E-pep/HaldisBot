@@ -45,6 +45,8 @@ class DecisionNode:
         self.gripper_angle = self.gripper_open
         self.pub = rospy.Publisher("/servo", UInt16, queue_size=3)
         self.pub.publish(self.gripper_angle)
+        self.pub = rospy.Publisher("/servo", UInt16, queue_size=3)
+        self.pub.publish(self.gripper_angle)
 
     def dummy_func(self):
         pass
