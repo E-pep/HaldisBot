@@ -42,6 +42,9 @@ class DecisionNode:
         self.gripper_open = UInt16(0)
         self.gripper_close = UInt16(80)
 
+        self.cw = -1        #clockwise
+        self.acw = 1        #anti-clockwise
+
         self.gripper_angle = self.gripper_open
         self.pub = rospy.Publisher("/servo", UInt16, queue_size=3)
         self.pub.publish(self.gripper_angle)
@@ -51,9 +54,9 @@ class DecisionNode:
     def dummy_func(self):
         pass
 
-    def turn_amount(self, degrees):
+    def turn_amount(self, degrees, direction):
         time.sleep(1)
-        self.vel_com.angular.z = 30 * 2 * pi / 360
+        self.vel_com.angular.z = direction * 30 * 2 * pi / 360
         self.vel_com.linear.x = 0
         self.pub.publish(self.vel_com)
         time.sleep(degrees / 30)
@@ -133,7 +136,7 @@ class DecisionNode:
                     self.sub.unregister()
                     self.pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
                     print("Turning 180")
-                    self.turn_amount(180)
+                    self.turn_amount(180, self.acw)
                     print("Start driving")
                     self.time_last = time.time()
                     self.sub = rospy.Subscriber("cmd_vel_mux/Line_Follower_vel", Twist, self.movement_callback)
@@ -160,7 +163,7 @@ class DecisionNode:
                     self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
 
                     print("Turning 180")
-                    self.turn_amount(180)
+                    self.turn_amount(180, self.acw)
 
                     # Drive backwards for 3 seconds
                     print("Drive backwards for 3 seconds")
@@ -194,7 +197,7 @@ class DecisionNode:
 
                     print("Turning 180")
                     self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
-                    self.turn_amount(180)
+                    self.turn_amount(180, self.acw)
 
                     # release gripper
                     print("Release object")
@@ -207,7 +210,7 @@ class DecisionNode:
 
                     print("Turning 180")
                     self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
-                    self.turn_amount(180)
+                    self.turn_amount(180, self.cw)
                     self.state = 1
 
                 else:
