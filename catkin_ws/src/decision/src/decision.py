@@ -82,6 +82,8 @@ class DecisionNode:
         # when no line is detected
         if msg.linear.x == 0:
             msg.angular.z = 0
+            self.pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+            self.pub.publish(msg)
             print("No line for:", time.time() - self.time_last, "Seconds")
             if time.time() - self.time_last > 5:
                 self.state += 1
