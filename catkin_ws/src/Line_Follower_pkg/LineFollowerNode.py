@@ -9,8 +9,9 @@ from geometry_msgs.msg import Twist
 class Follower:
 	def __init__(self):
 		#init bridge
+
 		self.bridge = cv_bridge.CvBridge()
-		cv2.namedWindow("window", 1)
+		#cv2.namedWindow("window", 1)
 		cv2.waitKey(3)
 		#subscribe to image publisher node
 		self.image_sub = rospy.Subscriber('/usb_cam/image_raw',Image, self.image_callback)
@@ -80,7 +81,7 @@ class Follower:
 			self.twist.angular.z = 0.0
 			self.cmd_vel_pub.publish(self.twist)
 
-		cv2.imshow("window", image)
+		#cv2.imshow("window", image)
 		cv2.waitKey(3)
 #initialize this node
 rospy.init_node('Line_Follower_Node')

@@ -63,9 +63,9 @@ def callback(data):
     # Show the image with the detected ArUco markers
     title = "Markers read"
     # print(ids)
-    cv2.namedWindow(title, cv2.WINDOW_NORMAL)
-    cv2.resizeWindow(title, width*2, height*2)
-    cv2.imshow(title, img_marker)
+    #cv2.namedWindow(title, cv2.WINDOW_NORMAL)
+    #cv2.resizeWindow(title, width*2, height*2)
+    #cv2.imshow(title, img_marker)
     cv2.waitKey(1)
 
 
