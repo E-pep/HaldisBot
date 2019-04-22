@@ -1,5 +1,4 @@
-#!/usr/bin/env python2.7
-
+#!/usr/bin/python2.7
 import rospy
 #import for ros msg images
 from sensor_msgs.msg import Image
@@ -10,8 +9,9 @@ from geometry_msgs.msg import Twist
 class Follower:
 	def __init__(self):
 		#init bridge
+
 		self.bridge = cv_bridge.CvBridge()
-		cv2.namedWindow("window", 1)
+		#cv2.namedWindow("window", 1)
 		cv2.waitKey(3)
 		#subscribe to image publisher node
 		self.image_sub = rospy.Subscriber('/usb_cam/image_raw',Image, self.image_callback)
@@ -23,8 +23,26 @@ class Follower:
 	def image_callback(self, msg):
 		#convert message to image
 		image = self.bridge.imgmsg_to_cv2(msg,desired_encoding='passthrough')
+
+		#flip input
+		h, w, c = image.shape
+
+		h = h - 1
+		w = w - 1
+
+		empty_img = numpy.zeros([h, w, 3], dtype=numpy.uint8)
+
+		for i in range(h):
+			for j in range(w):
+				empty_img[i, j] = image[h - i, w - j]
+				empty_img = empty_img[0:h, 0:w]
+
+		image = empty_img
+
+
+
 		#convert image color scheme to HSV
-		hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+		hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
 		#define color of line in HSV
 		lower_yellow = numpy.array([20, 100, 100])
 		upper_yellow = numpy.array([30, 255, 255])
@@ -51,19 +69,19 @@ class Follower:
 			else:
 				 color = (0,0,255)
 				 print(err)
-			#draw circle in center of screen and center of line as visual aid
 			cv2.circle(image, (w/2, cy), 20, color, 1)
 			cv2.circle(image, (cx, cy), 5, color, -1)
-			self.twist.linear.x = 0.2
+			self.twist.linear.x = 0.05
 			self.twist.angular.z = -float(err) / 100
 			self.cmd_vel_pub.publish(self.twist)
 		#when no line is detected publish rotation and velocity of 0
 		else:
+			print("no line detected")
 			self.twist.linear.x = 0.0
 			self.twist.angular.z = 0.0
 			self.cmd_vel_pub.publish(self.twist)
 
-		cv2.imshow("window", image)
+		#cv2.imshow("window", image)
 		cv2.waitKey(3)
 #initialize this node
 rospy.init_node('Line_Follower_Node')

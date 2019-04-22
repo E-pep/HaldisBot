@@ -1,3 +1,5 @@
 #Ignore build & devel folders
+.idea
 catkin_ws/build
 catkin_ws/devel
+catkin_ws/src/.idea
