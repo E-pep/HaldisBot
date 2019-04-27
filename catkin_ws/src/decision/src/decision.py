@@ -35,12 +35,14 @@ class DecisionNode:
         self.aruco_to_find = 1000000
         self.state = 1
         self.previous_state = 0
+        self.next_state = {1, 2, 3, 4, 5, 6, 1}
         self.time_last = 0
         # TODO: test gripper angles!
         self.gripper_time = 3
         self.takeaway_time = 10
         self.gripper_open = UInt16(0)
         self.gripper_close = UInt16(80)
+        self.angle_error_correct = 5
 
         self.cw = -1        #clockwise
         self.acw = 1        #anti-clockwise
@@ -163,7 +165,7 @@ class DecisionNode:
                     self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
 
                     print("Turning 180")
-                    self.turn_amount(180, self.acw)
+                    self.turn_amount(180+self.angle_error_correct, self.acw)
 
                     # Drive backwards for 3 seconds
                     print("Drive backwards for 3 seconds")
@@ -180,7 +182,7 @@ class DecisionNode:
                     # Drive forward again for 3 seconds
                     print("Drive forward for 3 seconds")
                     self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
-                    self.drive_time(0.05, 3)
+                    self.drive_time(0.05, 1.5)
                     self.state += 1
 
                 # Follow line back to user
@@ -197,7 +199,7 @@ class DecisionNode:
 
                     print("Turning 180")
                     self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
-                    self.turn_amount(180, self.acw)
+                    self.turn_amount(180+self.angle_error_correct, self.acw)
 
                     # release gripper
                     print("Release object")
@@ -210,11 +212,12 @@ class DecisionNode:
 
                     print("Turning 180")
                     self.pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
-                    self.turn_amount(180, self.cw)
+                    self.turn_amount(180+self.angle_error_correct, self.cw)
                     self.state = 1
 
                 else:
-                    print("undefined state")
+                    print("undefined state:", self.state)
+                    self.state = next_state[self.state]
 
 
 if __name__ == "__main__":

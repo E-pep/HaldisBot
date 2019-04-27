@@ -11,7 +11,7 @@ class Follower:
 		#init bridge
 
 		self.bridge = cv_bridge.CvBridge()
-		#cv2.namedWindow("window", 1)
+		cv2.namedWindow("window", 1)
 		cv2.waitKey(3)
 		#subscribe to image publisher node
 		self.image_sub = rospy.Subscriber('/usb_cam/image_raw',Image, self.image_callback)
@@ -44,7 +44,7 @@ class Follower:
 		#convert image color scheme to HSV
 		hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
 		#define color of line in HSV
-		lower_yellow = numpy.array([0, 158, 100])
+		lower_yellow = numpy.array([0, 145, 100])
 		upper_yellow = numpy.array([5, 255, 255])
 		#create binary mask by threshholding based on color
 		mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
@@ -81,7 +81,7 @@ class Follower:
 			self.twist.angular.z = 0.0
 			self.cmd_vel_pub.publish(self.twist)
 
-		#cv2.imshow("window", image)
+		cv2.imshow("window", image)
 		cv2.waitKey(3)
 #initialize this node
 rospy.init_node('Line_Follower_Node')
