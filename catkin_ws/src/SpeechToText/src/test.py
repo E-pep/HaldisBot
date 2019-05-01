@@ -3,7 +3,7 @@ import rospy
 import speech_recognition as sr
 
 r = sr.Recognizer()
-
+sr.__version__
 
 with sr.Microphone() as source:
 	while True:
