@@ -44,7 +44,9 @@ class Follower:
 		#convert image color scheme to HSV
 		hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
 		#define color of line in HSV
-		lower_yellow = numpy.array([0, 145, 100])
+		#lower_yellow = numpy.array([0, 50, 50])
+		#upper_yellow = numpy.array([5, 200, 255])
+		lower_yellow = numpy.array([0, 50, 50])
 		upper_yellow = numpy.array([5, 255, 255])
 		#create binary mask by threshholding based on color
 		mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
